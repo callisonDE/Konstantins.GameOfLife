@@ -1,10 +1,25 @@
+class Cell
+{
+    constructor(isAlive)
+    {
+        console.log('Neue Cell erstellt.');
+        this.isAlive = isAlive;
+    }
+}
+
 // Grid erstellen
 let grid = new Grid();
 
-// erste Zellen lebendig machen
-grid.setAlive(0, 0);
-grid.setAlive(1, 1);
-grid.setAlive(5, 0);
-grid.setAlive(5, 2);
+for(let i = 0; i < 10; i++)
+{
+    let cell = new Cell(true);
+    console.log(cell.isAlive);
+    
+    // grid.setAlive(0, i);
+}
 
-grid.clear();
+// erste Zellen lebendig machen
+//grid.setAlive(0, 0);
+
+
+// grid.clear();
