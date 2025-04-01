@@ -13,10 +13,10 @@ class Grid
     {
         this.context.clearRect(0, 0, this.hostElement.width, this.hostElement.height);
     }
-    
-    setAlive(x, y)
+
+    set(x, y, color)
     {
-        this.context.fillStyle = "black";
+        this.context.fillStyle = color;
         this.context.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
     }
 }
