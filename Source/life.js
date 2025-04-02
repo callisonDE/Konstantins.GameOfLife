@@ -121,7 +121,15 @@ class Generation
                 return cell
             }
         }
-        
+       
+        /*
+        // Funktioniert nicht wie erwarten
+        if(x >= 0 && y >= 0)
+        {
+            return new Cell(false, x, y);
+        }
+        */
+
         return null;
     }
 }
