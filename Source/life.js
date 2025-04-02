@@ -7,6 +7,11 @@ class Cell
         this.isDead = !isAlive;
         this.x = x;
         this.y = y;
+
+        if(!isAlive)
+        {
+            throw Error("Nein, wir wollen keine toten Zellen mehr erstellen.");
+        }
     }
 }
 
@@ -149,47 +154,11 @@ function drawGenerationOnGrid(grid, generation)
 function createStartGeneration()
 {
     let cells = [
-        new Cell(false, 0, 0),
-        new Cell(false, 0, 1),
         new Cell(true, 0, 2),
-        new Cell(false, 0, 3),
-        new Cell(false, 0, 4),
-        new Cell(false, 0, 5),
-
         new Cell(true, 1, 0),
-        new Cell(false, 1, 1),
         new Cell(true, 1, 2),
-        new Cell(false, 1, 3),
-        new Cell(false, 1, 4),
-        new Cell(false, 1, 5),
-
-        new Cell(false, 2, 0),
         new Cell(true, 2, 1),
-        new Cell(true, 2, 2),
-        new Cell(false, 2, 3),
-        new Cell(false, 2, 4),
-        new Cell(false, 2, 5),
-
-        new Cell(false, 3, 0),
-        new Cell(false, 3, 1),
-        new Cell(false, 3, 2),
-        new Cell(false, 3, 3),
-        new Cell(false, 3, 4),
-        new Cell(false, 3, 5),
-
-        new Cell(false, 4, 0),
-        new Cell(false, 4, 1),
-        new Cell(false, 4, 2),
-        new Cell(false, 4, 3),
-        new Cell(false, 4, 4),
-        new Cell(false, 4, 5),
-        
-        new Cell(false, 5, 0),
-        new Cell(false, 5, 1),
-        new Cell(false, 5, 2),
-        new Cell(false, 5, 3),
-        new Cell(false, 5, 4),
-        new Cell(false, 5, 5),
+        new Cell(true, 2, 2)
     ];
     
     return new Generation(0, cells);
