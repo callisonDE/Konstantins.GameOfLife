@@ -71,6 +71,22 @@ class SetOfCoords
     {
         return x + this.gridSize * y;
     }
+    getCoords()
+    {
+        let coords = [];
+
+        for(let coord of this.coords)
+        {
+            if(!coord)
+            {
+                continue;
+            }
+
+            coords.push(coord);
+        }
+
+        return coords;
+    }
 }
 
 class GenerationBuilder
@@ -82,7 +98,7 @@ class GenerationBuilder
 
     build()
     {
-        return new Generation(0, this.setOfAliveCoords.coords);
+        return new Generation(0, this.setOfAliveCoords.getCoords());
     }
     makeAlive(x, y)
     {
@@ -103,9 +119,9 @@ class Generation
         this.aliveCoords = aliveCoords;
     }
     
-    calculateNextGeneration()
+    calculateNextGeneration(gridSize)
     {
-        let aliveCoordsInNextGeneration = [];
+        let setOfAliveCoordsInNextGeneration = new SetOfCoords(gridSize);
         
         // apply rules to alive coords
         for(let aliveCoord of this.aliveCoords)
@@ -114,7 +130,7 @@ class Generation
             
             if(Rules.doesAliveCoordRemainAlive(numberOfAliveNeighbors))
             {
-                aliveCoordsInNextGeneration.push(aliveCoord)
+                setOfAliveCoordsInNextGeneration.insert(aliveCoord);
             }
         }
         
@@ -127,11 +143,11 @@ class Generation
             
             if(Rules.doesDeadCoordTurnAlive(numberOfAliveNeighbors))
             {
-                aliveCoordsInNextGeneration.push(deadNeighborCoord)
+                setOfAliveCoordsInNextGeneration.insert(deadNeighborCoord)
             }
         }
 
-        return new Generation(this.nr + 1, aliveCoordsInNextGeneration);
+        return new Generation(this.nr + 1, setOfAliveCoordsInNextGeneration.getCoords());
     }
     getDeadNeighborCoordsOfAliveCoords()
     {
@@ -201,9 +217,9 @@ function drawGenerationOnGrid(grid, generation)
     }
 }
 
-function createStartGeneration()
+function createStartGeneration(gridSize)
 {
-    return new GenerationBuilder(100)
+    return new GenerationBuilder(gridSize)
         .makeAlive(0, 2)
         .makeAlive(1, 0)
         .makeAlive(1, 2)
@@ -212,19 +228,19 @@ function createStartGeneration()
         .build();
 }
 
+let gridSize = 1000;
 let grid = new Grid();
-let currentGeneration = createStartGeneration();
-console.log(currentGeneration);
+let currentGeneration = createStartGeneration(gridSize);
 drawGenerationOnGrid(grid, currentGeneration);
 
 function next()
 {
-    currentGeneration = currentGeneration.calculateNextGeneration();
+    currentGeneration = currentGeneration.calculateNextGeneration(gridSize);
     console.log(currentGeneration);
     drawGenerationOnGrid(grid, currentGeneration);
 }
 
 function play()
 {
-    setInterval(next, 100);
+    setInterval(next, 50);
 }

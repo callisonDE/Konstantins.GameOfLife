@@ -4,7 +4,7 @@ class Grid
     {
         canvasHost ??= document.getElementById("canvas");
 
-        this.cellSize = 20;
+        this.cellSize = 10;
         this.hostElement = canvasHost;
         this.context = canvasHost.getContext("2d");
     }
