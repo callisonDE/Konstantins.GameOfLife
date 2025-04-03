@@ -8,10 +8,12 @@ class Cell
         this.x = x;
         this.y = y;
 
+        /*
         if(!isAlive)
         {
             throw Error("Nein, wir wollen keine toten Zellen mehr erstellen.");
         }
+        */
     }
 }
 
@@ -34,8 +36,12 @@ class Generation
         {
             let aliveInNextGeneration = this.isCellAliveInNextGeneration(cell);
             let cellInNextGeneration = new Cell(aliveInNextGeneration, cell.x, cell.y);
-            
             cellsInNextGeneration.push(cellInNextGeneration)
+        }
+
+        for(let cell of cellsInNextGeneration)
+        {
+            let nextGenerationNeighbors = getNeighborsOfNextGeneration(cell)
         }
 
         return new Generation(this.nr + 1, cellsInNextGeneration);
