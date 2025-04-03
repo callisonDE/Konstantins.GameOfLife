@@ -47,17 +47,15 @@ class Generation
 {
     constructor(nr, cells)
     {
-        // Erstelle eine Eigenschaft "nr" auf dem neuen Objekt (this)
         this.nr = nr;
         this.cells = cells;
-
-        console.log(`Generation Nr. ${nr} erstellt: ${cells.length} Zellen`);
     }
     
     calculateNextGeneration()
     {
         let cellsInNextGeneration = [];
         
+        // Teuer!
         for(let cell of this.cells)
         {
             let aliveInNextGeneration = this.isCellAliveInNextGeneration(cell);
@@ -97,23 +95,12 @@ class Generation
         }
         return false;
     }
-    getNeighborsOfNextGeneration(cell)
-    {
-        return this.getNeighborsDead(cell)
-    }
-    calculateNumberOfNeighborsAlive(cell)
+        calculateNumberOfNeighborsAlive(cell)
     {
         let neighbors = this.getNeighbors(cell);
         let numberOfNeighborsAlive = this.countNumberOfCellsAlive(neighbors);
 
         return numberOfNeighborsAlive;
-    }
-    calculateNumberOfNeighborsDead(cell)
-    {
-        let neighbors = this.getNeighbors(cell);
-        let numberOfNeighborsDead = this.countNumberOfCellsDead(neighbors);
-
-        return numberOfNeighborsDead;
     }
     getNeighbors(cell)
     {
@@ -141,32 +128,6 @@ class Generation
         }
         return neighbors;
     }
-    getNeighborsDead(cell)
-    {
-        let neighborsDead = [];
-
-        for(let x = cell.x - 1; x <= cell.x + 1; x++)
-        {
-            for(let y = cell.y - 1; y <= cell.y + 1; y++)
-            {
-                // ignore cell itself
-                if (x == cell.x && y == cell.y)
-                {
-                    continue;
-                }
-
-                let cellAtXY = this.getDeadCellAtCoords(x, y);
-
-                if(cellAtXY == null && cell.isDead)
-                {
-                    cellAtXY = new Cell(cell.isDead, cell.x, cell.y)
-                }
-                
-                neighborsDead.push(cellAtXY);
-            }
-        }
-        return neighborsDead;
-    }
     countNumberOfCellsAlive(cells)
     {
         let numberOfCellsAlive = 0;
@@ -180,20 +141,6 @@ class Generation
         }
 
         return numberOfCellsAlive;
-    }
-    countNumberOfCellsDead(cells)
-    {
-        let numberOfCellsDead = 0;
-
-        for(let cell of cells)
-        {
-            if(cell.isDead)
-            {
-                numberOfCellsDead++;
-            }
-        }
-
-        return numberOfCellsDead;
     }
     getCellAtCoords(x,y)
     {
@@ -212,18 +159,6 @@ class Generation
             return new Cell(false, x, y);
         }
         */
-
-        return null;
-    }
-    getDeadCellAtCoords(x,y)
-    {
-        for(let cell of this.cells)
-        {
-            if (cell.x == x && cell.y == y)
-            {
-                return cell
-            }
-        }
 
         return null;
     }
