@@ -1,12 +1,75 @@
-class Cell
+class Coords
 {
-    constructor(isAlive, x, y)
+    constructor(x, y)
     {
-        //console.log('Neue Cell erstellt.');
-        this.isAlive = isAlive;
-        this.isDead = !isAlive;
         this.x = x;
         this.y = y;
+    }
+
+    getNeighbors()
+    {
+        let neighbors = [];
+
+        for(let x = this.x - 1; x <= this.x + 1; x++)
+        for(let y = this.y - 1; y <= this.y + 1; y++)
+        {
+            // ignore coords themselves
+            if (x == this.x && 
+                y == this.y)
+            {
+                continue;
+            }
+            
+            neighbors.push(new Coords(x, y));
+        }
+
+        return neighbors;
+    }
+}
+
+class Rules
+{
+    static doesAliveCoordRemainAlive(numberOfNeighborsAlive)
+    {
+        // rule #1: Any live cell with two or three live neighbours lives on to the next generation.
+        if (numberOfNeighborsAlive == 2 || numberOfNeighborsAlive == 3)
+        {
+            return true;
+        }
+
+        // rule #0: Any live cell with fewer than two live neighbours dies, as if by underpopulation.
+        // rule #2: Any live cell with more than three live neighbours dies, as if by overpopulation.
+        return false;
+    }
+
+    static doesDeadCoordTurnAlive(numberOfNeighborsAlive)
+    {
+        // rule #3: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+        return numberOfNeighborsAlive == 3;
+    }
+}
+
+class SetOfCoords
+{
+    constructor(gridSize)
+    {
+        this.gridSize = gridSize;
+        this.coords = [];
+    }
+
+    hasCoords(x, y)
+    {
+        let index = this.getIndex(x, y);
+        return this.coords[index];
+    }
+    insert(coords)
+    {
+        let index = this.getIndex(coords.x, coords.y);
+        this.coords[index] = coords;
+    }
+    getIndex(x, y)
+    {
+        return x + this.gridSize * y;
     }
 }
 
@@ -14,146 +77,117 @@ class GenerationBuilder
 {
     constructor(gridSize)
     {
-        this.gridSize = gridSize;
-        this.cells = [];
-        this.insertAllDeadCells();
+        this.setOfAliveCoords = new SetOfCoords(gridSize);
     }
 
     build()
     {
-        return new Generation(0, this.cells);
+        return new Generation(0, this.setOfAliveCoords.coords);
     }
     makeAlive(x, y)
     {
-        this.insertCell(x, y, true);
+        this.setOfAliveCoords.insert(new Coords(x, y));
         return this;
     }
-    insertCell(x, y, alive)
+    isAlive(x, y)
     {
-        let index = x + this.gridSize * y;
-        this.cells[index] = new Cell(alive, x, y);
-    }
-    insertAllDeadCells()
-    {
-        for(let x = 0; x < this.gridSize; x++)
-        for(let y = 0; y < this.gridSize; y++)
-        {
-            this.insertCell(x, y, false);
-        }
+        return this.setOfAliveCoords.hasCoords(x, y);
     }
 }
 
 class Generation
 {
-    constructor(nr, cells)
+    constructor(nr, aliveCoords)
     {
         this.nr = nr;
-        this.cells = cells;
+        this.aliveCoords = aliveCoords;
     }
     
     calculateNextGeneration()
     {
-        let cellsInNextGeneration = [];
+        let aliveCoordsInNextGeneration = [];
         
-        // Teuer!
-        for(let cell of this.cells)
+        // apply rules to alive coords
+        for(let aliveCoord of this.aliveCoords)
         {
-            let aliveInNextGeneration = this.isCellAliveInNextGeneration(cell);
-            let cellInNextGeneration = new Cell(aliveInNextGeneration, cell.x, cell.y);
-            cellsInNextGeneration.push(cellInNextGeneration)
-        }
-        
-        return new Generation(this.nr + 1, cellsInNextGeneration);
-    }
-    isCellAliveInNextGeneration(cell)
-    {
-        let numberOfNeighborsAlive = this.calculateNumberOfNeighborsAlive(cell);
-
-        if(cell.isAlive)
-        {
-            // rule #0: Any live cell with fewer than two live neighbours dies, as if by underpopulation.
-            if (numberOfNeighborsAlive < 2)
-            {
-                return false;
-            }
-    
-            // rule #1: Any live cell with two or three live neighbours lives on to the next generation.
-            if (numberOfNeighborsAlive == 2 || numberOfNeighborsAlive == 3)
-            {
-                // this.cellsInNextGeneration.push(cell)
-                return true;
-            }
+            let numberOfAliveNeighbors = this.calculateNumberOfNeighborsAlive(aliveCoord);
             
-            // rule #2: Any live cell with more than three live neighbours dies, as if by overpopulation.
-            return false;
+            if(Rules.doesAliveCoordRemainAlive(numberOfAliveNeighbors))
+            {
+                aliveCoordsInNextGeneration.push(aliveCoord)
+            }
         }
-        // rule #3: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
-        else if (cell.isDead && numberOfNeighborsAlive == 3)
+        
+        // apply rules to dead neighbor coords
+        let deadNeighborCoords = this.getDeadNeighborCoordsOfAliveCoords();
+
+        for(let deadNeighborCoord of deadNeighborCoords)
         {
-            return true;
+            let numberOfAliveNeighbors = this.calculateNumberOfNeighborsAlive(deadNeighborCoord);
+            
+            if(Rules.doesDeadCoordTurnAlive(numberOfAliveNeighbors))
+            {
+                aliveCoordsInNextGeneration.push(deadNeighborCoord)
+            }
         }
 
-        return false;
+        return new Generation(this.nr + 1, aliveCoordsInNextGeneration);
     }
-    calculateNumberOfNeighborsAlive(cell)
+    getDeadNeighborCoordsOfAliveCoords()
     {
-        let neighbors = this.getNeighbors(cell);
-        let numberOfNeighborsAlive = this.countNumberOfCellsAlive(neighbors);
+        let deadNeighborCoords = [];
+
+        for(let aliveCoord of this.aliveCoords)
+        {
+           for(let neighborCoord of aliveCoord.getNeighbors())
+           {
+                if(neighborCoord.x < 0 ||
+                   neighborCoord.y < 0)
+                {
+                    continue;
+                }
+                else if(!this.hasAliveCoords(neighborCoord.x, neighborCoord.y))
+                {
+                    deadNeighborCoords.push(neighborCoord);
+                }
+           }
+        }
+
+        return deadNeighborCoords;
+    }
+    calculateNumberOfNeighborsAlive(aliveCoord)
+    {
+        let neighbors = aliveCoord.getNeighbors();
+        let numberOfNeighborsAlive = this.countNumberOfCoordsAlive(neighbors);
 
         return numberOfNeighborsAlive;
     }
-    getNeighbors(cell)
+    countNumberOfCoordsAlive(coords)
     {
-        let neighbors = [];
+        let numberOfCoordsAlive = 0;
 
-        for(let x = cell.x - 1; x <= cell.x + 1; x++)
+        for(let coord of coords)
         {
-            for(let y = cell.y - 1; y <= cell.y + 1; y++)
+            if(this.hasAliveCoords(coord.x, coord.y))
             {
-                // ignore cell itself
-                if (x == cell.x && y == cell.y)
-                {
-                    continue;
-                }
-
-                let cellAtXY = this.getCellAtCoords(x, y);
-
-                if(cellAtXY == null)
-                {
-                    continue;
-                }
-                
-                neighbors.push(cellAtXY);
+                numberOfCoordsAlive++;
             }
         }
 
-        return neighbors;
+        return numberOfCoordsAlive;
     }
-    countNumberOfCellsAlive(cells)
+    hasAliveCoords(x, y)
     {
-        let numberOfCellsAlive = 0;
-
-        for(let cell of cells)
+        for(let aliveCoord of this.aliveCoords)
         {
-            if(cell.isAlive)
+            if (aliveCoord.x == x && 
+                aliveCoord.y == y)
             {
-                numberOfCellsAlive++;
-            }
-        }
-
-        return numberOfCellsAlive;
-    }
-    getCellAtCoords(x,y)
-    {
-        for(let cell of this.cells)
-        {
-            if (cell.x == x && cell.y == y)
-            {
-                return cell
+                return true
             }
         }
         
-        return null;
+        return false;
     }
 }
 
@@ -161,11 +195,9 @@ function drawGenerationOnGrid(grid, generation)
 {
     grid.clear();
 
-    for(let i = 0; i < generation.cells.length; i++)
+    for(let aliveCoords of generation.aliveCoords)
     {
-        let cell = generation.cells[i];
-        let color = cell.isAlive ? "black" : "white" /*"rgb(72, 72, 72)"*/;
-        grid.set(cell.x, cell.y, color);
+        grid.set(aliveCoords.x, aliveCoords.y, "black");
     }
 }
 
@@ -188,6 +220,7 @@ drawGenerationOnGrid(grid, currentGeneration);
 function next()
 {
     currentGeneration = currentGeneration.calculateNextGeneration();
+    console.log(currentGeneration);
     drawGenerationOnGrid(grid, currentGeneration);
 }
 
