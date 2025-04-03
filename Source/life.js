@@ -90,12 +90,12 @@ class Generation
         // rule #3: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
         else if (cell.isDead && numberOfNeighborsAlive == 3)
         {
-            // this.cellsInNextGeneration.push(cell);
             return true;
         }
+
         return false;
     }
-        calculateNumberOfNeighborsAlive(cell)
+    calculateNumberOfNeighborsAlive(cell)
     {
         let neighbors = this.getNeighbors(cell);
         let numberOfNeighborsAlive = this.countNumberOfCellsAlive(neighbors);
@@ -126,6 +126,7 @@ class Generation
                 neighbors.push(cellAtXY);
             }
         }
+
         return neighbors;
     }
     countNumberOfCellsAlive(cells)
@@ -151,15 +152,7 @@ class Generation
                 return cell
             }
         }
-       
         
-        /* Funktioniert nicht wie erwartet
-        if(x >= 0 && y >= 0)
-        {
-            return new Cell(false, x, y);
-        }
-        */
-
         return null;
     }
 }
