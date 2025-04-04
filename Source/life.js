@@ -207,6 +207,39 @@ class Generation
     }
 }
 
+class OwnGeneration
+{
+    constructor(text)
+    {
+        this.allRows = [];
+        this.textOfRows = text;
+    }
+    calculateNumberAndLengthOfRows()
+    {
+        let numberOfRows = this.calculateNumberOfRows();
+        let lenthOfRows = this.calculateLenghtOfRows()
+
+        return numberOfRows && lenthOfRows
+    }  
+
+    calculateNumberOfRows()
+    {
+        this.allRows.push(this.textOfRows.split('\n'));
+        return this.allRows.length
+    }
+
+    calculateLenghtOfRows()
+    {
+        for(let row of this.allRows)
+        {
+           let lenghthOfRows = [];
+           lenghthOfRows.push(row.value.split(''))
+        }
+        return lengthOfRows
+    }
+
+}
+
 function drawGenerationOnGrid(grid, generation)
 {
     grid.clear();
@@ -243,4 +276,10 @@ function next()
 function play()
 {
     setInterval(next, 50);
+}
+
+function insertOwnGeneration()
+{
+    let owngeneration = new OwnGeneration(document.getElementById('areaOfOwnStartGeneration.textvalue'))
+    console.log(owngeneration.calculateNumberAndLengthOfRows())
 }

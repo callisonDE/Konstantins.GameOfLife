@@ -26,3 +26,8 @@ button:hover{
     border-radius: 50px;
     color: black;
 }
+
+#buttonOwnGeneration{
+    width: 300px;
+    height: 140px; 
+}
