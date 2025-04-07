@@ -1,39 +1,31 @@
-class Coords
-{
-    constructor(x, y)
-    {
+class Coords {
+    constructor(x, y) {
         this.x = x;
         this.y = y;
     }
 
-    getNeighbors()
-    {
+    getNeighbors() {
         let neighbors = [];
 
-        for(let x = this.x - 1; x <= this.x + 1; x++)
-        for(let y = this.y - 1; y <= this.y + 1; y++)
-        {
-            // ignore coords themselves
-            if (x == this.x && 
-                y == this.y)
-            {
-                continue;
+        for (let x = this.x - 1; x <= this.x + 1; x++)
+            for (let y = this.y - 1; y <= this.y + 1; y++) {
+                // ignore coords themselves
+                if (x == this.x &&
+                    y == this.y) {
+                    continue;
+                }
+
+                neighbors.push(new Coords(x, y));
             }
-            
-            neighbors.push(new Coords(x, y));
-        }
 
         return neighbors;
     }
 }
 
-class Rules
-{
-    static doesAliveCoordRemainAlive(numberOfNeighborsAlive)
-    {
+class Rules {
+    static doesAliveCoordRemainAlive(numberOfNeighborsAlive) {
         // rule #1: Any live cell with two or three live neighbours lives on to the next generation.
-        if (numberOfNeighborsAlive == 2 || numberOfNeighborsAlive == 3)
-        {
+        if (numberOfNeighborsAlive == 2 || numberOfNeighborsAlive == 3) {
             return true;
         }
 
@@ -42,43 +34,34 @@ class Rules
         return false;
     }
 
-    static doesDeadCoordTurnAlive(numberOfNeighborsAlive)
-    {
+    static doesDeadCoordTurnAlive(numberOfNeighborsAlive) {
         // rule #3: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
         return numberOfNeighborsAlive == 3;
     }
 }
 
-class SetOfCoords
-{
-    constructor(gridSize)
-    {
+class SetOfCoords {
+    constructor(gridSize) {
         this.gridSize = gridSize;
         this.coords = [];
     }
 
-    hasCoords(x, y)
-    {
+    hasCoords(x, y) {
         let index = this.getIndex(x, y);
         return this.coords[index];
     }
-    insert(coords)
-    {
+    insert(coords) {
         let index = this.getIndex(coords.x, coords.y);
         this.coords[index] = coords;
     }
-    getIndex(x, y)
-    {
+    getIndex(x, y) {
         return x + this.gridSize * y;
     }
-    getCoords()
-    {
+    getCoords() {
         let coords = [];
 
-        for(let coord of this.coords)
-        {
-            if(!coord)
-            {
+        for (let coord of this.coords) {
+            if (!coord) {
                 continue;
             }
 
@@ -89,167 +72,148 @@ class SetOfCoords
     }
 }
 
-class GenerationBuilder
-{
-    constructor(gridSize)
-    {
+class GenerationBuilder {
+    constructor(gridSize) {
         this.setOfAliveCoords = new SetOfCoords(gridSize);
     }
 
-    build()
-    {
+    build() {
         return new Generation(0, this.setOfAliveCoords.getCoords());
     }
-    makeAlive(x, y)
-    {
+    makeAlive(x, y) {
         this.setOfAliveCoords.insert(new Coords(x, y));
         return this;
     }
-    isAlive(x, y)
-    {
+    isAlive(x, y) {
         return this.setOfAliveCoords.hasCoords(x, y);
     }
 }
 
-class Generation
-{
-    constructor(nr, aliveCoords)
-    {
+class Generation {
+    constructor(nr, aliveCoords) {
         this.nr = nr;
         this.aliveCoords = aliveCoords;
     }
-    
-    calculateNextGeneration(gridSize)
-    {
+
+    calculateNextGeneration(gridSize) {
         let setOfAliveCoordsInNextGeneration = new SetOfCoords(gridSize);
-        
+
         // apply rules to alive coords
-        for(let aliveCoord of this.aliveCoords)
-        {
+        for (let aliveCoord of this.aliveCoords) {
             let numberOfAliveNeighbors = this.calculateNumberOfNeighborsAlive(aliveCoord);
-            
-            if(Rules.doesAliveCoordRemainAlive(numberOfAliveNeighbors))
-            {
+
+            if (Rules.doesAliveCoordRemainAlive(numberOfAliveNeighbors)) {
                 setOfAliveCoordsInNextGeneration.insert(aliveCoord);
             }
         }
-        
+
         // apply rules to dead neighbor coords
         let deadNeighborCoords = this.getDeadNeighborCoordsOfAliveCoords();
 
-        for(let deadNeighborCoord of deadNeighborCoords)
-        {
+        for (let deadNeighborCoord of deadNeighborCoords) {
             let numberOfAliveNeighbors = this.calculateNumberOfNeighborsAlive(deadNeighborCoord);
-            
-            if(Rules.doesDeadCoordTurnAlive(numberOfAliveNeighbors))
-            {
+
+            if (Rules.doesDeadCoordTurnAlive(numberOfAliveNeighbors)) {
                 setOfAliveCoordsInNextGeneration.insert(deadNeighborCoord)
             }
         }
 
         return new Generation(this.nr + 1, setOfAliveCoordsInNextGeneration.getCoords());
     }
-    getDeadNeighborCoordsOfAliveCoords()
-    {
+
+    getDeadNeighborCoordsOfAliveCoords() {
         let deadNeighborCoords = [];
 
-        for(let aliveCoord of this.aliveCoords)
-        {
-           for(let neighborCoord of aliveCoord.getNeighbors())
-           {
-                if(neighborCoord.x < 0 ||
-                   neighborCoord.y < 0)
-                {
+        for (let aliveCoord of this.aliveCoords) {
+            for (let neighborCoord of aliveCoord.getNeighbors()) {
+                if (neighborCoord.x < 0 ||
+                    neighborCoord.y < 0) {
                     continue;
                 }
-                else if(!this.hasAliveCoords(neighborCoord.x, neighborCoord.y))
-                {
+                else if (!this.hasAliveCoords(neighborCoord.x, neighborCoord.y)) {
                     deadNeighborCoords.push(neighborCoord);
                 }
-           }
+            }
         }
 
         return deadNeighborCoords;
     }
-    calculateNumberOfNeighborsAlive(aliveCoord)
-    {
+    calculateNumberOfNeighborsAlive(aliveCoord) {
         let neighbors = aliveCoord.getNeighbors();
         let numberOfNeighborsAlive = this.countNumberOfCoordsAlive(neighbors);
 
         return numberOfNeighborsAlive;
     }
-    countNumberOfCoordsAlive(coords)
-    {
+    countNumberOfCoordsAlive(coords) {
         let numberOfCoordsAlive = 0;
 
-        for(let coord of coords)
-        {
-            if(this.hasAliveCoords(coord.x, coord.y))
-            {
+        for (let coord of coords) {
+            if (this.hasAliveCoords(coord.x, coord.y)) {
                 numberOfCoordsAlive++;
             }
         }
 
         return numberOfCoordsAlive;
     }
-    hasAliveCoords(x, y)
-    {
-        for(let aliveCoord of this.aliveCoords)
-        {
-            if (aliveCoord.x == x && 
-                aliveCoord.y == y)
-            {
+    hasAliveCoords(x, y) {
+        for (let aliveCoord of this.aliveCoords) {
+            if (aliveCoord.x == x &&
+                aliveCoord.y == y) {
                 return true
             }
         }
-        
+
         return false;
     }
 }
 
-class StartGenerationImporter 
-{
-    constructor ()
-    {
+class StartGenerationImporter {
+    constructor() {
 
     }
-    importing()
-    {
-        let text = '..OO...';
+    importing(text) {
         let importedStartGeneration = [];
-        for (let x = 0; x < text.length; x++){
-            if (text[x] == 'O')
-            {
-                let y = 0
-                importedStartGeneration.push(`x: ${x}, y: ${y}`)
-                 GenerationBuilder.makeAlive(x,y)
+        let singleRows = text.split('\n')
+        
+        for (let y = 0; y < singleRows.length; y++) {
+            let row = singleRows[y]
+            console.log(row.length)
+            for (let x = 0; x < row.length; x++) {
+                if (row[x] == 'O') {
+                    importedStartGeneration.push(`${x}, ${y}`)
+                }
             }
         }
-        console.log(importedStartGeneration)
+        /*
+        for (let coords of importedStartGeneration)
+        {
+            new GenerationBuilder(1000)
+            for (let coord of importedStartGeneration)
+            {
+
+            }
+        } 
+        */
+       return importedStartGeneration
     }
 }
 
 
-function drawGenerationOnGrid(grid, generation)
-{
+function drawGenerationOnGrid(grid, generation) {
     grid.clear();
 
-    for(let aliveCoords of generation.aliveCoords)
-    {
+    for (let aliveCoords of generation.aliveCoords) {
         grid.set(aliveCoords.x, aliveCoords.y, "black");
     }
 }
 
-function createStartGeneration(gridSize)
-{
+function createStartGeneration(gridSize) {
     return new GenerationBuilder(gridSize)
-        /*
         .makeAlive(0, 2)
         .makeAlive(1, 0)
         .makeAlive(1, 2)
         .makeAlive(2, 1)
         .makeAlive(2, 2)
-        */
         .build();
 }
 
@@ -258,21 +222,24 @@ let grid = new Grid();
 let currentGeneration = createStartGeneration(gridSize);
 drawGenerationOnGrid(grid, currentGeneration);
 
-function next()
-{
+function next() {
     currentGeneration = currentGeneration.calculateNextGeneration(gridSize);
     console.log(currentGeneration);
     drawGenerationOnGrid(grid, currentGeneration);
 }
 
-function play()
-{
+function play() {
     setInterval(next, 50);
 }
 
-
 let newStartGenerationImporter = new StartGenerationImporter();
-console.log(newStartGenerationImporter.importing());
+
+console.log(newStartGenerationImporter.importing(document.getElementById('areaOfOwnStartGeneration').value));
+
+
+function importTextArea() {
+    console.log(newStartGenerationImporter.importing(document.getElementById('areaOfOwnStartGeneration').value));
+}
 
 
 
