@@ -207,38 +207,28 @@ class Generation
     }
 }
 
-class OwnGeneration
+class StartGenerationImporter 
 {
-    constructor(text)
+    constructor ()
     {
-        this.allRows = [];
-        this.textOfRows = text;
+
     }
-    calculateNumberAndLengthOfRows()
+    importing()
     {
-        let numberOfRows = this.calculateNumberOfRows();
-        let lenthOfRows = this.calculateLenghtOfRows()
-
-        return numberOfRows && lenthOfRows
-    }  
-
-    calculateNumberOfRows()
-    {
-        this.allRows.push(this.textOfRows.split('\n'));
-        return this.allRows.length
-    }
-
-    calculateLenghtOfRows()
-    {
-        for(let row of this.allRows)
-        {
-           let lenghthOfRows = [];
-           lenghthOfRows.push(row.value.split(''))
+        let text = '..OO...';
+        let importedStartGeneration = [];
+        for (let x = 0; x < text.length; x++){
+            if (text[x] == 'O')
+            {
+                let y = 0
+                importedStartGeneration.push(`x: ${x}, y: ${y}`)
+                 GenerationBuilder.makeAlive(x,y)
+            }
         }
-        return lengthOfRows
+        console.log(importedStartGeneration)
     }
-
 }
+
 
 function drawGenerationOnGrid(grid, generation)
 {
@@ -253,11 +243,13 @@ function drawGenerationOnGrid(grid, generation)
 function createStartGeneration(gridSize)
 {
     return new GenerationBuilder(gridSize)
+        /*
         .makeAlive(0, 2)
         .makeAlive(1, 0)
         .makeAlive(1, 2)
         .makeAlive(2, 1)
         .makeAlive(2, 2)
+        */
         .build();
 }
 
@@ -278,8 +270,9 @@ function play()
     setInterval(next, 50);
 }
 
-function insertOwnGeneration()
-{
-    let owngeneration = new OwnGeneration(document.getElementById('areaOfOwnStartGeneration.textvalue'))
-    console.log(owngeneration.calculateNumberAndLengthOfRows())
-}
+
+let newStartGenerationImporter = new StartGenerationImporter();
+console.log(newStartGenerationImporter.importing());
+
+
+
