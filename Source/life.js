@@ -171,16 +171,17 @@ class StartGenerationImporter {
     constructor() {
 
     }
-    importing(text) {
-        let importedStartGeneration = [];
+    import(text, startPointX, startPointY) {
+        let coordsForStartGeneration = [];
         let singleRows = text.split('\n')
-        
+
         for (let y = 0; y < singleRows.length; y++) {
             let row = singleRows[y]
             console.log(row.length)
             for (let x = 0; x < row.length; x++) {
                 if (row[x] == 'O') {
-                    importedStartGeneration.push(`${x}, ${y}`)
+                    coordsForStartGeneration.push(new Coords(x + startPointX, y + startPointY))
+                    console.log(x + startPointX, y + startPointY)
                 }
             }
         }
@@ -194,7 +195,7 @@ class StartGenerationImporter {
             }
         } 
         */
-       return importedStartGeneration
+        return new Generation(0, coordsForStartGeneration)
     }
 }
 
@@ -217,11 +218,6 @@ function createStartGeneration(gridSize) {
         .build();
 }
 
-let gridSize = 1000;
-let grid = new Grid();
-let currentGeneration = createStartGeneration(gridSize);
-drawGenerationOnGrid(grid, currentGeneration);
-
 function next() {
     currentGeneration = currentGeneration.calculateNextGeneration(gridSize);
     console.log(currentGeneration);
@@ -232,14 +228,17 @@ function play() {
     setInterval(next, 50);
 }
 
-let newStartGenerationImporter = new StartGenerationImporter();
-
-console.log(newStartGenerationImporter.importing(document.getElementById('areaOfOwnStartGeneration').value));
-
-
-function importTextArea() {
-    console.log(newStartGenerationImporter.importing(document.getElementById('areaOfOwnStartGeneration').value));
+function importFromTextArea() {
+    let importer = new StartGenerationImporter();
+    let importTextArea = document.getElementById('areaOfOwnStartGeneration');
+    let startPointX = 0;
+    let startPointY = 0;
+    currentGeneration = importer.import(importTextArea.value, startPointX, startPointY);
+    drawGenerationOnGrid(grid, currentGeneration);
 }
 
-
+let gridSize = 1000;
+let grid = new Grid();
+let currentGeneration = createStartGeneration(gridSize);
+drawGenerationOnGrid(grid, currentGeneration);
 

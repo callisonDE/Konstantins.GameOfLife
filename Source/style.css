@@ -18,10 +18,11 @@ button{
     text-align: center;
     cursor: pointer;
     font-weight: 900;
+    transition: all 0.3s linear;
 }
 
 button:hover{
-    transition: all 0.5s ease-in;
+    transition: all 0.5s linear;
     background-color: rgb(4, 255, 0);
     border-radius: 50px;
     color: black;
@@ -30,4 +31,21 @@ button:hover{
 #buttonOwnGeneration{
     width: 300px;
     height: 140px; 
+}
+
+canvas{
+    background-color: rgb(99, 99, 99);
+}
+
+#linkToTemplates{
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s linear; 
+}
+
+#linkToTemplates:hover{
+    transition: all 0.1s linear;
+    color:rgb(4, 255, 0);
+    font-size: larger;
 }

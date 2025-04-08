@@ -10,13 +10,12 @@
 <body>
     <h1>Konstantin's Game of Life</h1>
 
-    <canvas id="canvas" width="800" height="800"></canvas>
+    <canvas id="canvas" width="1000" height="1000"></canvas>
     <button onclick="next()">NEXT</button>
     <button onclick="play()">PLAY</button>
-    <textarea id="areaOfOwnStartGeneration">...OOO..
-OOO...OOO</textarea>
-    <button id="buttonOwnGeneration" onclick="importTextArea()">Insert own Generation</button>
-
+    <textarea id="areaOfOwnStartGeneration" placeholder="Gib hier bitte eine eigene Generation aus 'O' (lebend) und '.'. (tot) an"></textarea>
+    <button id="buttonOwnGeneration" onclick="importFromTextArea()">Insert own Generation</button>
+    <a id="linkToTemplates" href="https://conwaylife.com/ref/lexicon/lex.htm" target="_blank">!!Finde hier Vorlagen!!</a>
     <script src="grid.js"></script>
     <script src="life.js"></script>
 </body>
