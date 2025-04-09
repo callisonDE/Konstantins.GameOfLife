@@ -8,11 +8,11 @@ namespace GameOfLife {
             this.y = y;
         }
 
-        getNeighbors() {
-            let neighbors:Coords[] = [];
-            for (let x: number = this.x - 1; x <= this.x + 1; x++)
-                for (let y = this.y - 1; y <= this.y + 1; y++) {
+        public getNeighbors(): Coords[] {
+            let neighbors: Coords[] = [];
 
+            for (let x = this.x - 1; x <= this.x + 1; x++)
+                for (let y = this.y - 1; y <= this.y + 1; y++) {
                     if (x == this.x &&
                         y == this.y) {
                         continue;
@@ -20,11 +20,13 @@ namespace GameOfLife {
 
                     neighbors.push(new Coords(x, y));
                 }
+
+            return neighbors;
         }
     }
 
     export class Rules {
-        static doesAliveCoordRemainAlive(NeighborsAlive: number) {
+        public static doesAliveCoordRemainAlive(NeighborsAlive: number): boolean {
             // rule #1: Any live cell with two or three live neighbours lives on to the next generation.
             if (NeighborsAlive == 2 || NeighborsAlive == 3) {
                 return true;
@@ -35,34 +37,33 @@ namespace GameOfLife {
             return false;
         }
 
-        static doesDeadCoordTurnAlive(NeighborsAlive: number) {
+        public static doesDeadCoordTurnAlive(NeighborsAlive: number): boolean {
             // rule #3: Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
             return NeighborsAlive == 3;
         }
     }
 
-    export class SetOfCoords {
-        public readonly gridSize: number;
-        public coords: number[];
+    class SetOfCoords {
+        private readonly _coords = [];
+
         constructor(gridSize: number) {
             this.gridSize = gridSize;
-            this.coords = [];
         }
 
-        hasCoords(x: number, y: number) {
+        public readonly gridSize: number;
+
+        public hasCoords(x: number, y: number): boolean {
             let index: number = this.getIndex(x, y);
-            return this.coords[index];
+            return this._coords[index] != null;
         }
-        insert(coords) {
+        public insert(coords: Coords) {
             let index: number = this.getIndex(coords.x, coords.y);
-            this.coords[index] = coords;
+            this._coords[index] = coords;
         }
-        getIndex(x: number, y: number) {
-            return x + this.gridSize * y;
-        }
-        getCoords() {
+        public getCoords(): Coords[] {
             let coords: Coords[] = [];
-            for (let coord of this.coords) {
+
+            for (let coord of this._coords) {
                 if (!coord) {
                     continue;
                 }
@@ -72,61 +73,72 @@ namespace GameOfLife {
 
             return coords;
         }
+
+        private getIndex(x: number, y: number): number {
+            return x + this.gridSize * y;
+        }
     }
 
-    export class Builder {
-        public readonly setOfAliveCoords: SetOfCoords;
+    export class Builder
+    {
+        private readonly _setOfAliveCoords: SetOfCoords;
+
         constructor(gridSize: number) {
-            this.setOfAliveCoords = new SetOfCoords(gridSize);
+            this._setOfAliveCoords = new SetOfCoords(gridSize);
         }
-        build() {
-            return new Generation(0, this.setOfAliveCoords.getCoords());
+
+        public build(): Generation {
+            return new Generation(0, this._setOfAliveCoords.getCoords());
         }
-        makeAlive(x: number, y: number) {
-            this.setOfAliveCoords.insert(new Coords(x, y));
+        public makeAlive(x: number, y: number): this {
+            this._setOfAliveCoords.insert(new Coords(x, y));
             return this;
         }
-        isAlive(x: number, y: number) {
-            return this.setOfAliveCoords.hasCoords(x, y);
+        private isAlive(x: number, y: number): boolean {
+            return this._setOfAliveCoords.hasCoords(x, y);
         }
     }
 
-    export class Generation {
-        public readonly nr: number;
-        public aliveCoords: Coords[];
-        constructor(nr: number, aliveCoords: []) {
+    export class Generation
+    {
+        constructor(nr: number, aliveCoords: Coords[]) {
             this.nr = nr;
             this.aliveCoords = aliveCoords;
         }
-    
-        calculateNextGeneration(gridSize: number) {
-            let AliveCoordsInNextGeneration = new SetOfCoords(gridSize);
-    
+        
+        public readonly nr: number;
+        public readonly aliveCoords: Coords[];
+
+        public calculateNextGeneration(gridSize: number): Generation {
+            let AliveCoordsInNextGeneration: SetOfCoords = new SetOfCoords(gridSize);
+
             // apply rules to alive coords
-            for (let aliveCoord of this.aliveCoords) {
-                let AliveNeighbors = this.calculateNumberOfNeighborsAlive(aliveCoord);
-    
-                if (Rules.doesAliveCoordRemainAlive(AliveNeighbors)) {
+            for (let aliveCoord of this.aliveCoords)
+            {
+                let numberOfAliveNeighbors = this.calculateNumberOfNeighborsAlive(aliveCoord);
+                
+                if (Rules.doesAliveCoordRemainAlive(numberOfAliveNeighbors))
+                {
                     AliveCoordsInNextGeneration.insert(aliveCoord);
                 }
             }
-    
+
             // apply rules to dead neighbor coords
             let deadNeighborCoords: Coords[] = this.getDeadNeighborCoordsOfAliveCoords();
             for (let deadNeighborCoord of deadNeighborCoords) {
                 let AliveNeighbors = this.calculateNumberOfNeighborsAlive(deadNeighborCoord);
-    
+
                 if (Rules.doesDeadCoordTurnAlive(AliveNeighbors)) {
                     AliveCoordsInNextGeneration.insert(deadNeighborCoord)
                 }
             }
-    
+
             return new Generation(this.nr + 1, AliveCoordsInNextGeneration.getCoords());
         }
-    
-        getDeadNeighborCoordsOfAliveCoords() {
+
+        private getDeadNeighborCoordsOfAliveCoords(): Coords[] {
             let deadNeighborCoords: Coords[] = [];
-    
+
             for (let aliveCoord of this.aliveCoords) {
                 for (let neighborCoord of aliveCoord.getNeighbors()) {
                     if (neighborCoord.x < 0 ||
@@ -138,56 +150,111 @@ namespace GameOfLife {
                     }
                 }
             }
-    
+
             return deadNeighborCoords;
         }
-        calculateNumberOfNeighborsAlive(aliveCoord: Coords) {
-            let neighbors:Coords[] = aliveCoord.getNeighbors();
-            let numberOfNeighborsAlive = this.countNumberOfCoordsAlive(neighbors);
-    
-            return numberOfNeighborsAlive;
+        private calculateNumberOfNeighborsAlive(coords: Coords): number {
+            let neighbors: Coords[] = coords.getNeighbors();
+            return this.countNumberOfCoordsAlive(neighbors);
         }
-        countNumberOfCoordsAlive(coords: Coords[]) {
-            let CoordsAlive = 0;
-    
-            for (let coord of coords) {
-                if (this.hasAliveCoords(coord.x, coord.y)) {
-                    CoordsAlive++;
+        private countNumberOfCoordsAlive(coords: Coords[]): number {
+            let coordsAlive = 0;
+
+            for (let coord of coords)
+            {
+                if (this.hasAliveCoords(coord.x, coord.y))
+                {
+                    coordsAlive++;
                 }
             }
-    
-            return CoordsAlive;
+            
+            return coordsAlive;
         }
-        hasAliveCoords(x: number, y: number) {
-            for (let aliveCoord of this.aliveCoords) {
+        private hasAliveCoords(x: number, y: number): boolean {
+            for (let aliveCoord of this.aliveCoords)
+            {
                 if (aliveCoord.x == x &&
-                    aliveCoord.y == y) {
+                    aliveCoord.y == y)
+                {
                     return true
                 }
             }
-    
+
             return false;
+        }
+    }
+
+    export class StartGenerationImporter {
+        public import(text: string, startPointX: number, startPointY: number): Generation {
+            let coordsForStartGeneration: Coords[] = [];
+            let singleRows = text.split('\n')
+
+            for (let y = 0; y < singleRows.length; y++)
+            {
+                let row = singleRows[y]
+                console.log(row.length)
+                for (let x = 0; x < row.length; x++)
+                {
+                    if (row[x] == 'O')
+                    {
+                        coordsForStartGeneration.push(new Coords(x + startPointX, y + startPointY))
+                        console.log(x + startPointX, y + startPointY)
+                    }
+                }
+            }
+            /*
+            for (let coords of importedStartGeneration)
+            {
+                new GenerationBuilder(1000)
+                for (let coord of importedStartGeneration)
+                {
+    
+                }
+            } 
+            */
+            return new Generation(0, coordsForStartGeneration)
         }
     }
 }
 
-let canvas = document.getElementById("canvas") as HTMLCanvasElement;
-let grid = new GameOfLife.Grid(canvas);
-canvas.getContext("2d");
+function drawGenerationOnGrid(grid, generation) {
+    grid.clear();
 
-
-console.log(canvas);
-console.log(grid);
-
-function add(x: number, y: number) {
-    let sum = x + y;
-    console.log('result', sum);
-}
-function concat(x: string, y: string) {
-    let concatenatedValue = x + y;
-    console.log('result', concatenatedValue);
+    for (let aliveCoords of generation.aliveCoords) {
+        grid.set(aliveCoords.x, aliveCoords.y, "black");
+    }
 }
 
-add(3, 4);
-concat("hello", "world");
-console.log("cellsize", grid.cellSize);
+function createStartGeneration(gridSize) {
+    return new GameOfLife.Builder(gridSize)
+        .makeAlive(0, 2)
+        .makeAlive(1, 0)
+        .makeAlive(1, 2)
+        .makeAlive(2, 1)
+        .makeAlive(2, 2)
+        .build();
+}
+
+function next() {
+    currentGeneration = currentGeneration.calculateNextGeneration(gridSize);
+    console.log(currentGeneration);
+    drawGenerationOnGrid(grid, currentGeneration);
+}
+
+function play() {
+    setInterval(next, 50);
+}
+
+function importFromTextArea() {
+    let importer = new GameOfLife.StartGenerationImporter();
+    let importTextArea = document.getElementById('areaOfOwnStartGeneration') as HTMLTextAreaElement;
+    let startPointX = 0;
+    let startPointY = 0;
+    currentGeneration = importer.import(importTextArea.value, startPointX, startPointY);
+    drawGenerationOnGrid(grid, currentGeneration);
+}
+
+let gridSize = 1000;
+let grid = new GameOfLife.Grid();
+let currentGeneration = createStartGeneration(gridSize);
+drawGenerationOnGrid(grid, currentGeneration);

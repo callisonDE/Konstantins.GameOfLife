@@ -15,6 +15,7 @@ var GameOfLife;
                     }
                     neighbors.push(new Coords(x, y));
                 }
+            return neighbors;
         };
         return Coords;
     }());
@@ -40,23 +41,20 @@ var GameOfLife;
     GameOfLife.Rules = Rules;
     var SetOfCoords = /** @class */ (function () {
         function SetOfCoords(gridSize) {
+            this._coords = [];
             this.gridSize = gridSize;
-            this.coords = [];
         }
         SetOfCoords.prototype.hasCoords = function (x, y) {
             var index = this.getIndex(x, y);
-            return this.coords[index];
+            return this._coords[index] != null;
         };
         SetOfCoords.prototype.insert = function (coords) {
             var index = this.getIndex(coords.x, coords.y);
-            this.coords[index] = coords;
-        };
-        SetOfCoords.prototype.getIndex = function (x, y) {
-            return x + this.gridSize * y;
+            this._coords[index] = coords;
         };
         SetOfCoords.prototype.getCoords = function () {
             var coords = [];
-            for (var _i = 0, _a = this.coords; _i < _a.length; _i++) {
+            for (var _i = 0, _a = this._coords; _i < _a.length; _i++) {
                 var coord = _a[_i];
                 if (!coord) {
                     continue;
@@ -65,22 +63,24 @@ var GameOfLife;
             }
             return coords;
         };
+        SetOfCoords.prototype.getIndex = function (x, y) {
+            return x + this.gridSize * y;
+        };
         return SetOfCoords;
     }());
-    GameOfLife.SetOfCoords = SetOfCoords;
     var Builder = /** @class */ (function () {
         function Builder(gridSize) {
-            this.setOfAliveCoords = new SetOfCoords(gridSize);
+            this._setOfAliveCoords = new SetOfCoords(gridSize);
         }
         Builder.prototype.build = function () {
-            return new Generation(0, this.setOfAliveCoords.getCoords());
+            return new Generation(0, this._setOfAliveCoords.getCoords());
         };
         Builder.prototype.makeAlive = function (x, y) {
-            this.setOfAliveCoords.insert(new Coords(x, y));
+            this._setOfAliveCoords.insert(new Coords(x, y));
             return this;
         };
         Builder.prototype.isAlive = function (x, y) {
-            return this.setOfAliveCoords.hasCoords(x, y);
+            return this._setOfAliveCoords.hasCoords(x, y);
         };
         return Builder;
     }());
@@ -91,13 +91,13 @@ var GameOfLife;
             this.aliveCoords = aliveCoords;
         }
         Generation.prototype.calculateNextGeneration = function (gridSize) {
-            var setOfAliveCoordsInNextGeneration = new SetOfCoords(gridSize);
+            var AliveCoordsInNextGeneration = new SetOfCoords(gridSize);
             // apply rules to alive coords
             for (var _i = 0, _a = this.aliveCoords; _i < _a.length; _i++) {
                 var aliveCoord = _a[_i];
-                var AliveNeighbors = this.calculateNumberOfNeighborsAlive(aliveCoord);
-                if (Rules.doesAliveCoordRemainAlive(AliveNeighbors)) {
-                    setOfAliveCoordsInNextGeneration.insert(aliveCoord);
+                var numberOfAliveNeighbors = this.calculateNumberOfNeighborsAlive(aliveCoord);
+                if (Rules.doesAliveCoordRemainAlive(numberOfAliveNeighbors)) {
+                    AliveCoordsInNextGeneration.insert(aliveCoord);
                 }
             }
             // apply rules to dead neighbor coords
@@ -106,10 +106,10 @@ var GameOfLife;
                 var deadNeighborCoord = deadNeighborCoords_1[_b];
                 var AliveNeighbors = this.calculateNumberOfNeighborsAlive(deadNeighborCoord);
                 if (Rules.doesDeadCoordTurnAlive(AliveNeighbors)) {
-                    setOfAliveCoordsInNextGeneration.insert(deadNeighborCoord);
+                    AliveCoordsInNextGeneration.insert(deadNeighborCoord);
                 }
             }
-            return new Generation(this.nr + 1, setOfAliveCoordsInNextGeneration.getCoords());
+            return new Generation(this.nr + 1, AliveCoordsInNextGeneration.getCoords());
         };
         Generation.prototype.getDeadNeighborCoordsOfAliveCoords = function () {
             var deadNeighborCoords = [];
@@ -128,20 +128,19 @@ var GameOfLife;
             }
             return deadNeighborCoords;
         };
-        Generation.prototype.calculateNumberOfNeighborsAlive = function (aliveCoord) {
-            var neighbors = aliveCoord.getNeighbors();
-            var numberOfNeighborsAlive = this.countNumberOfCoordsAlive(neighbors);
-            return numberOfNeighborsAlive;
+        Generation.prototype.calculateNumberOfNeighborsAlive = function (coords) {
+            var neighbors = coords.getNeighbors();
+            return this.countNumberOfCoordsAlive(neighbors);
         };
         Generation.prototype.countNumberOfCoordsAlive = function (coords) {
-            var CoordsAlive = 0;
+            var coordsAlive = 0;
             for (var _i = 0, coords_1 = coords; _i < coords_1.length; _i++) {
                 var coord = coords_1[_i];
                 if (this.hasAliveCoords(coord.x, coord.y)) {
-                    CoordsAlive++;
+                    coordsAlive++;
                 }
             }
-            return CoordsAlive;
+            return coordsAlive;
         };
         Generation.prototype.hasAliveCoords = function (x, y) {
             for (var _i = 0, _a = this.aliveCoords; _i < _a.length; _i++) {
@@ -156,21 +155,72 @@ var GameOfLife;
         return Generation;
     }());
     GameOfLife.Generation = Generation;
+    var StartGenerationImporter = /** @class */ (function () {
+        function StartGenerationImporter() {
+        }
+        StartGenerationImporter.prototype.import = function (text, startPointX, startPointY) {
+            var coordsForStartGeneration = [];
+            var singleRows = text.split('\n');
+            for (var y = 0; y < singleRows.length; y++) {
+                var row = singleRows[y];
+                console.log(row.length);
+                for (var x = 0; x < row.length; x++) {
+                    if (row[x] == 'O') {
+                        coordsForStartGeneration.push(new Coords(x + startPointX, y + startPointY));
+                        console.log(x + startPointX, y + startPointY);
+                    }
+                }
+            }
+            /*
+            for (let coords of importedStartGeneration)
+            {
+                new GenerationBuilder(1000)
+                for (let coord of importedStartGeneration)
+                {
+    
+                }
+            }
+            */
+            return new Generation(0, coordsForStartGeneration);
+        };
+        return StartGenerationImporter;
+    }());
+    GameOfLife.StartGenerationImporter = StartGenerationImporter;
 })(GameOfLife || (GameOfLife = {}));
-var canvas = document.getElementById("canvas");
-var grid = new GameOfLife.Grid(canvas);
-canvas.getContext("2d");
-console.log(canvas);
-console.log(grid);
-function add(x, y) {
-    var sum = x + y;
-    console.log('result', sum);
+function drawGenerationOnGrid(grid, generation) {
+    grid.clear();
+    for (var _i = 0, _a = generation.aliveCoords; _i < _a.length; _i++) {
+        var aliveCoords = _a[_i];
+        grid.set(aliveCoords.x, aliveCoords.y, "black");
+    }
 }
-function concat(x, y) {
-    var concatenatedValue = x + y;
-    console.log('result', concatenatedValue);
+function createStartGeneration(gridSize) {
+    return new GameOfLife.Builder(gridSize)
+        .makeAlive(0, 2)
+        .makeAlive(1, 0)
+        .makeAlive(1, 2)
+        .makeAlive(2, 1)
+        .makeAlive(2, 2)
+        .build();
 }
-add(3, 4);
-concat("hello", "world");
-console.log("cellsize", grid.cellSize);
+function next() {
+    currentGeneration = currentGeneration.calculateNextGeneration(gridSize);
+    console.log(currentGeneration);
+    drawGenerationOnGrid(grid, currentGeneration);
+}
+function play() {
+    setInterval(next, 50);
+}
+function importFromTextArea() {
+    var importer = new GameOfLife.StartGenerationImporter();
+    var importTextArea = document.getElementById('areaOfOwnStartGeneration');
+    var startPointX = 0;
+    var startPointY = 0;
+    currentGeneration = importer.import(importTextArea.value, startPointX, startPointY);
+    drawGenerationOnGrid(grid, currentGeneration);
+}
+var gridSize = 1000;
+var grid = new GameOfLife.Grid();
+var currentGeneration = createStartGeneration(gridSize);
+drawGenerationOnGrid(grid, currentGeneration);
 //# sourceMappingURL=life.js.map
