@@ -10,7 +10,7 @@ namespace GameOfLife
         {
             canvasHost ??= document.getElementById("canvas") as HTMLCanvasElement;
     
-            this._cellSize = 10;
+            this._cellSize = 8;
             this._hostElement = canvasHost;
             this._context = canvasHost.getContext("2d")!;
         }
@@ -28,7 +28,7 @@ namespace GameOfLife
         public set(x: number, y: number, color : string | CanvasGradient)
         {
             this._context.fillStyle = color;
-            this._context.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+            this._context.fillRect(x * this._cellSize, y * this._cellSize, this._cellSize, this._cellSize);
         }
     }
 }

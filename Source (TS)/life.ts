@@ -1,12 +1,13 @@
 namespace GameOfLife {
-    export class Coords {
-        public readonly x: number;
-        public readonly y: number;
-
+    export class Coords
+    {
         constructor(x: number, y: number) {
             this.x = x;
             this.y = y;
         }
+
+        public readonly x: number;
+        public readonly y: number;
 
         public getNeighbors(): Coords[] {
             let neighbors: Coords[] = [];
@@ -22,6 +23,10 @@ namespace GameOfLife {
                 }
 
             return neighbors;
+        }
+        public move(vector: Coords): Coords
+        {
+            return new Coords(this.x + vector.x, this.y + vector.y);
         }
     }
 
@@ -184,34 +189,28 @@ namespace GameOfLife {
         }
     }
 
-    export class StartGenerationImporter {
-        public import(text: string, startPointX: number, startPointY: number): Generation {
+    export class StartGenerationImporter
+    {
+        public import(text: string, startCoord: Coords): Generation
+        {
             let coordsForStartGeneration: Coords[] = [];
             let singleRows = text.split('\n')
-
-            for (let y = 0; y < singleRows.length; y++)
+            
+            for (let r = 0; r < singleRows.length; r++)
             {
-                let row = singleRows[y]
-                console.log(row.length)
-                for (let x = 0; x < row.length; x++)
+                let row = singleRows[r]
+                
+                for (let c = 0; c < row.length; c++)
                 {
-                    if (row[x] == 'O')
+                    if (row[c] == 'O')
                     {
-                        coordsForStartGeneration.push(new Coords(x + startPointX, y + startPointY))
-                        console.log(x + startPointX, y + startPointY)
+                        let originalCoords = new Coords(c, r);
+                        let targetCoords = originalCoords.move(startCoord);
+                        
+                        coordsForStartGeneration.push(targetCoords);
                     }
                 }
             }
-            /*
-            for (let coords of importedStartGeneration)
-            {
-                new GenerationBuilder(1000)
-                for (let coord of importedStartGeneration)
-                {
-    
-                }
-            } 
-            */
             return new Generation(0, coordsForStartGeneration)
         }
     }
@@ -242,19 +241,17 @@ function next() {
 }
 
 function play() {
-    setInterval(next, 50);
+    let timeBetweenGenerations = document.getElementById('timeBetweenGenerations') as HTMLInputElement;
+    setInterval(next, timeBetweenGenerations.valueAsNumber);
 }
 
 function importFromTextArea() {
     let importer = new GameOfLife.StartGenerationImporter();
     let importTextArea = document.getElementById('areaOfOwnStartGeneration') as HTMLTextAreaElement;
-    let startPointX = 0;
-    let startPointY = 0;
-    currentGeneration = importer.import(importTextArea.value, startPointX, startPointY);
+    currentGeneration = importer.import(importTextArea.value, new GameOfLife.Coords(50, 50));
     drawGenerationOnGrid(grid, currentGeneration);
 }
-
-let gridSize = 1000;
+let gridSize = 100;
 let grid = new GameOfLife.Grid();
 let currentGeneration = createStartGeneration(gridSize);
 drawGenerationOnGrid(grid, currentGeneration);

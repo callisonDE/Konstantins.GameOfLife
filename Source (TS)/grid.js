@@ -4,7 +4,7 @@ var GameOfLife;
         function Grid(canvasHost) {
             if (canvasHost === void 0) { canvasHost = null; }
             canvasHost !== null && canvasHost !== void 0 ? canvasHost : (canvasHost = document.getElementById("canvas"));
-            this._cellSize = 10;
+            this._cellSize = 8;
             this._hostElement = canvasHost;
             this._context = canvasHost.getContext("2d");
         }
@@ -20,7 +20,7 @@ var GameOfLife;
         };
         Grid.prototype.set = function (x, y, color) {
             this._context.fillStyle = color;
-            this._context.fillRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+            this._context.fillRect(x * this._cellSize, y * this._cellSize, this._cellSize, this._cellSize);
         };
         return Grid;
     }());
