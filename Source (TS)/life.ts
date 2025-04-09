@@ -216,15 +216,18 @@ namespace GameOfLife {
     }
 }
 
-function drawGenerationOnGrid(grid, generation) {
+function drawGenerationOnGrid(grid: GameOfLife.Grid, generation: GameOfLife.Generation)
+{
     grid.clear();
 
-    for (let aliveCoords of generation.aliveCoords) {
+    for (let aliveCoords of generation.aliveCoords)
+        {
         grid.set(aliveCoords.x, aliveCoords.y, "black");
     }
 }
 
-function createStartGeneration(gridSize) {
+function createStartGeneration(gridSize: number)
+{
     return new GameOfLife.Builder(gridSize)
         .makeAlive(0, 2)
         .makeAlive(1, 0)
